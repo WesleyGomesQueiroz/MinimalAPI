@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MinimalAPI.Data;
 using MinimalAPI.Models;
+using MiniValidation;
 
 namespace MinimalAPI
 {
@@ -52,12 +53,20 @@ namespace MinimalAPI
                 MinimalContextDb context,
                 Fornecedor fornecedor) =>
             {
+                if (!MiniValidator.TryValidate(fornecedor, out var errors))
+                    return Results.ValidationProblem(errors);
+
                 context.Fornecedores.Add(fornecedor);
                 var result = await context.SaveChangesAsync();
-            })
+
+                return result > 0
+                    //? Results.Created($"/fornecedor/{fornecedor.Id}", fornecedor)
+                    ? Results.CreatedAtRoute("GetFornecedorPorId", new { id = fornecedor.Id }, fornecedor)
+                    : Results.BadRequest("Houve um problema ao salvar o registro");
+            }).ProducesValidationProblem()
             .Produces<Fornecedor>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status404NotFound)
-            .WithName("PostFornecedorPorId")
+            .WithName("PostFornecedor")
             .WithTags("Fornecedor");
 
             app.Run();
