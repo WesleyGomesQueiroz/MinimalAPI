@@ -48,6 +48,18 @@ namespace MinimalAPI
                 .WithName("GetFornecedorPorId")
                 .WithTags("Fornecedor");
 
+            app.MapPost("/fornecedor", async (
+                MinimalContextDb context,
+                Fornecedor fornecedor) =>
+            {
+                context.Fornecedores.Add(fornecedor);
+                var result = await context.SaveChangesAsync();
+            })
+            .Produces<Fornecedor>(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status404NotFound)
+            .WithName("PostFornecedorPorId")
+            .WithTags("Fornecedor");
+
             app.Run();
         }
     }
