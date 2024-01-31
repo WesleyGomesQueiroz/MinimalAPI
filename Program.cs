@@ -75,7 +75,7 @@ namespace MinimalAPI
                 MinimalContextDb context,
                 Fornecedor fornecedor) =>
                 {
-                    var fornecedorBanco = await context.Fornecedores.FindAsync(id);
+                    var fornecedorBanco = await context.Fornecedores.AsNoTracking<Fornecedor>().FirstOrDefaultAsync(f => f.Id == id);
                     if (fornecedorBanco == null) return Results.NotFound();
 
                     if (!MiniValidator.TryValidate(fornecedor, out var errors))
@@ -94,26 +94,24 @@ namespace MinimalAPI
                 .WithName("PutFornecedor")
                 .WithTags("Fornecedor");
 
-            app.MapDelete("/fornecedor/{id}", [Authorize] async (
+            app.MapDelete("/fornecedor/{id}", async (
                 Guid id,
                 MinimalContextDb context) =>
-                {
-                    var fornecedor = await context.Fornecedores.FindAsync(id);
-                    if (fornecedor == null) return Results.NotFound();
+            {
+                var fornecedor = await context.Fornecedores.FindAsync(id);
+                if (fornecedor == null) return Results.NotFound();
 
-                    context.Fornecedores.Remove(fornecedor);
-                    var result = await context.SaveChangesAsync();
+                context.Fornecedores.Remove(fornecedor);
+                var result = await context.SaveChangesAsync();
 
-                    return result > 0
-                        ? Results.NoContent()
-                        : Results.BadRequest("Houve um problema ao salvar o registro");
-
-                }).Produces(StatusCodes.Status400BadRequest)
-                .Produces(StatusCodes.Status204NoContent)
-                .Produces(StatusCodes.Status404NotFound)
-                .RequireAuthorization("ExcluirFornecedor")
-                .WithName("DeleteFornecedor")
-                .WithTags("Fornecedor");
+                return result > 0
+                    ? Results.NoContent()
+                    : Results.BadRequest("Houve um problema ao deletar o registro");
+            }).Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound)
+            .WithName("DeleteFornecedor")
+            .WithTags("Fornecedor");
 
             app.Run();
         }
