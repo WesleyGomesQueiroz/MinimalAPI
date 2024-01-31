@@ -34,4 +34,7 @@ namespace MinimalAPI.Data
 /*
  * add-migration Initial
  * update-database
+ * 
+ * Add-Migration AuthInitial -Context NetDevPackAppDbContext
+ * update-database -Context NetDevPackAppDbContext
  */

@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using MinimalAPI.Data;
 using MinimalAPI.Models;
 using MiniValidation;
+using NetDevPack.Identity;
+using NetDevPack.Identity.Jwt;
 
 namespace MinimalAPI
 {
@@ -21,6 +23,13 @@ namespace MinimalAPI
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
             );
 
+            builder.Services.AddIdentityEntityFrameworkContextConfiguration(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+                b => b.MigrationsAssembly("MinimalAPI")));
+
+            builder.Services.AddIdentityConfiguration();
+            builder.Services.AddJwtConfiguration(builder.Configuration, "AppSettings");
+
             var app = builder.Build();
 
             if (app.Environment.IsDevelopment())
@@ -29,14 +38,18 @@ namespace MinimalAPI
                 app.UseSwaggerUI();
             }
 
+            app.UseAuthConfiguration();
             app.UseHttpsRedirection();
 
+            #region Get
             app.MapGet("/fornecedor", async (
                 MinimalContextDb context) =>
                 await context.Fornecedores.ToListAsync())
                 .WithName("GetFornecedor")
                 .WithTags("Fornecedor");
+            #endregion
 
+            #region GetById
             app.MapGet("/fornecedor/{id}", async (
                 Guid id,
                 MinimalContextDb context) =>
@@ -49,7 +62,9 @@ namespace MinimalAPI
                 .Produces(StatusCodes.Status404NotFound)
                 .WithName("GetFornecedorPorId")
                 .WithTags("Fornecedor");
+            #endregion
 
+            #region
             app.MapPost("/fornecedor", async (
                 MinimalContextDb context,
                 Fornecedor fornecedor) =>
@@ -69,7 +84,9 @@ namespace MinimalAPI
                 .Produces(StatusCodes.Status404NotFound)
                 .WithName("PostFornecedor")
                 .WithTags("Fornecedor");
+            #endregion
 
+            #region Put
             app.MapPut("/fornecedor/{id}", async (
                 Guid id,
                 MinimalContextDb context,
@@ -93,7 +110,9 @@ namespace MinimalAPI
                 .Produces(StatusCodes.Status400BadRequest)
                 .WithName("PutFornecedor")
                 .WithTags("Fornecedor");
+            #endregion
 
+            #region Delete
             app.MapDelete("/fornecedor/{id}", async (
                 Guid id,
                 MinimalContextDb context) =>
@@ -112,6 +131,7 @@ namespace MinimalAPI
             .Produces(StatusCodes.Status404NotFound)
             .WithName("DeleteFornecedor")
             .WithTags("Fornecedor");
+            #endregion
 
             app.Run();
         }
