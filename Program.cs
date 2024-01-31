@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Models;
 using MinimalAPI.Data;
 using MinimalAPI.Models;
 using MiniValidation;
@@ -20,7 +21,6 @@ namespace MinimalAPI
             builder.Services.AddAuthorization();
 
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
 
             builder.Services.AddDbContext<MinimalContextDb>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
@@ -38,6 +38,45 @@ namespace MinimalAPI
                 options.AddPolicy("ExcluirFornecedor",
                     policy => policy.RequireClaim("ExcluirFornecedor"));
             });
+
+
+            #region Documents
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "Minimal API Sample",
+                    Description = "Developed by Wesley Queiroz",
+                    Contact = new OpenApiContact { Name = "Wesley Queiroz", Email = "wesleygomesqueiroz@gmail.com" },
+                    License = new OpenApiLicense { Name = "MIT", Url = new Uri("https://opensource.org/licenses/MIT") }
+                });
+
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "Insira o token JWT desta maneira: Bearer {seu token}",
+                    Name = "Authorization",
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey
+                });
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] {}
+                    }
+                });
+            });
+            #endregion
 
             var app = builder.Build();
 
