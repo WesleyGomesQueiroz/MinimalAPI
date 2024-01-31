@@ -37,4 +37,7 @@ namespace MinimalAPI.Data
  * 
  * Add-Migration AuthInitial -Context NetDevPackAppDbContext
  * update-database -Context NetDevPackAppDbContext
+ * 
+ * "email": "teste@gmail.com"
+ * "password": "Teste@123",
  */

@@ -33,6 +33,12 @@ namespace MinimalAPI
             builder.Services.AddIdentityConfiguration();
             builder.Services.AddJwtConfiguration(builder.Configuration, "AppSettings");
 
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("ExcluirFornecedor",
+                    policy => policy.RequireClaim("ExcluirFornecedor"));
+            });
+
             var app = builder.Build();
 
             if (app.Environment.IsDevelopment())
@@ -46,7 +52,7 @@ namespace MinimalAPI
 
             //--------Registro de Usuario
             #region Post
-            app.MapPost("/registro", async (
+            app.MapPost("/registro", [AllowAnonymous] async (
                     SignInManager<IdentityUser> signInManager,
                     UserManager<IdentityUser> userManager,
                     IOptions<AppJwtSettings> appJwtSettings,
@@ -86,7 +92,7 @@ namespace MinimalAPI
             #endregion
 
             #region Post
-            app.MapPost("/login", async (
+            app.MapPost("/login", [AllowAnonymous] async (
                 SignInManager<IdentityUser> signInManager,
                 UserManager<IdentityUser> userManager,
                 IOptions<AppJwtSettings> appJwtSettings,
@@ -122,7 +128,7 @@ namespace MinimalAPI
 
             //--------Fornecedor
             #region Get
-            app.MapGet("/fornecedor", async (
+            app.MapGet("/fornecedor", [AllowAnonymous] async (
                 MinimalContextDb context) =>
                 await context.Fornecedores.ToListAsync())
                 .WithName("GetFornecedor")
@@ -144,8 +150,8 @@ namespace MinimalAPI
                 .WithTags("Fornecedor");
             #endregion
 
-            #region
-            app.MapPost("/fornecedor", async (
+            #region Post
+            app.MapPost("/fornecedor", [Authorize] async (
                 MinimalContextDb context,
                 Fornecedor fornecedor) =>
                 {
@@ -167,7 +173,7 @@ namespace MinimalAPI
             #endregion
 
             #region Put
-            app.MapPut("/fornecedor/{id}", async (
+            app.MapPut("/fornecedor/{id}", [Authorize] async (
                 Guid id,
                 MinimalContextDb context,
                 Fornecedor fornecedor) =>
@@ -193,7 +199,7 @@ namespace MinimalAPI
             #endregion
 
             #region Delete
-            app.MapDelete("/fornecedor/{id}", async (
+            app.MapDelete("/fornecedor/{id}", [Authorize] async (
                 Guid id,
                 MinimalContextDb context) =>
             {
@@ -209,6 +215,7 @@ namespace MinimalAPI
             }).Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
+            .RequireAuthorization("ExcluirFornecedor")
             .WithName("DeleteFornecedor")
             .WithTags("Fornecedor");
             #endregion
